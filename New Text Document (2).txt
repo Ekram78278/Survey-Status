@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survey Status of PDB -16, PDB-17</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
+  h1 {
+    font-weight: bold;
+    font-size: 24px;
+    color: #333;
+  }
+  #logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  form {
+    margin-bottom: 20px;
+  }
+  label {
+    font-weight: bold;
+  }
+  input[type="text"],
+  select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  input[type="time"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  input[type="submit"]:hover {
+    background-color: #45a049;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+</style>
+</head>
+<body>
+
+<img id="logo" src="https://www.cegisbd.com/images/logo.png" alt="CEGIS Logo">
+
+<h1>Survey Status of PDB -16, PDB-17</h1>
+
+<form id="surveyForm">
+  <label for="date">Date:</label>
+  <input type="date" id="date" name="date" required>
+
+  <label for="zone">Zone:</label>
+  <select id="zone" name="zone" required>
+    <option value="" disabled selected>Select Zone</option>
+    <option value="Chittagong">Chittagong</option>
+    <option value="Mymensingh">Mymensingh</option>
+  </select>
+
+  <label for="snd">SnD:</label>
+  <select id="snd" name="snd" required>
+    <option value="" disabled selected>Select SnD</option>
+  </select>
+
+  <label for="surveyorNumber">Surveyor Number:</label>
+  <input type="text" id="surveyorNumber" name="surveyorNumber" required>
+
+  <label for="surveyorName">Surveyor Name:</label>
+  <input type="text" id="surveyorName" name="surveyorName" required>
+
+  <label for="startTime">Start Time:</label>
+  <input type="time" id="startTime" name="startTime" required>
+
+  <label for="endTime">End Time:</label>
+  <input type="time" id="endTime" name="endTime" required>
+
+  <label for="numberOfSurvey">Number of Survey:</label>
+  <input type="text" id="numberOfSurvey" name="numberOfSurvey" required>
+
+  <label for="remarks">Remarks (Max 50 characters):</label>
+  <input type="text" id="remarks" name="remarks" maxlength="50">
+
+  <input type="submit" value="Submit">
+</form>
+
+<input type="text" id="filterInput" placeholder="Filter table...">
+<table id="surveyTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Zone</th>
+      <th>SnD</th>
+      <th>Surveyor Number</th>
+      <th>Surveyor Name</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th>Number of Survey</th>
+      <th>Remarks</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<button id="exportButton">Export to Excel</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+<script>
+  document.getElementById('zone').addEventListener('change', function() {
+    var sndSelect = document.getElementById('snd');
+    sndSelect.innerHTML = '';
+    var zone = this.value;
+    if (zone === 'Chittagong') {
+      addOptions(sndSelect, ['Fouzdarhat', 'Patiya']);
+    } else if (zone === 'Mymensingh') {
+      addOptions(sndSelect, ['Bazitpur', 'Bhairab', 'Jamalpur', 'Bhaluka']);
+    }
+  });
+
+  function addOptions(select, options) {
+    options.forEach(function(option) {
+      var optionElement = document.createElement('option');
+      optionElement.value = option;
+      optionElement.textContent = option;
+      select.appendChild(optionElement);
+    });
+  }
+
+  document.getElementById('surveyForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    var tableRef = document.getElementById('surveyTable').getElementsByTagName('tbody')[0];
+    var newRow = tableRef.insertRow();
+
+    for (var value of formData.values()) {
+      var newCell = newRow.insertCell();
+      var newText = document.createTextNode(value);
+      newCell.appendChild(newText);
+    }
+    this.reset();
+  });
+
+  document.getElementById('filterInput').addEventListener('keyup', function() {
+    var filterValue = this.value.toUpperCase();
+    var rows = document.getElementById('surveyTable').getElementsByTagName('tr');
+    for (var i = 0; i < rows.length; i++) {
+      var cells = rows[i].getElementsByTagName('td');
+      var found = false;
+      for (var j = 0; j < cells.length; j++) {
+        var cell = cells[j];
+        if (cell) {
+          var textValue = cell.textContent || cell.innerText;
+          if (textValue.toUpperCase().indexOf(filterValue) > -1) {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (found) {
+        rows[i].style.display = '';
+      } else {
+        rows[i].style.display = 'none';
+      }
+    }
+  });
+
+  document.getElementById('exportButton').addEventListener('click', function() {
+    var table = document.getElementById('surveyTable');
+    var wb = XLSX.utils.table_to_book(table, {sheet:"Sheet JS"});
+    var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+
+    function s2ab(s) {
+      var buf = new ArrayBuffer(s.length);
+      var view = new Uint8Array(buf);
+      for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+      return buf;
+    }
+
+    saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'survey_data.xlsx');
+  });
+</script>
+
+</body>
+</html>
